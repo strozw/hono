@@ -119,13 +119,14 @@ export type ErrorHandler<E extends Env = any> = (
 ) => Response | Promise<Response>
 
 /**
- * Holds the schema and the current path of an app in the type-only `HonoBase[schemaKey]` property (see `HonoThis` in
- * `hono-base.ts`). It does not use its type parameters, so it does not change how apps are related.
+ * Holds the schema, the current path and the env of an app in the type-only `HonoBase[schemaKey]` property (see
+ * `HonoThis` in `hono-base.ts`). It does not use its type parameters, so it does not change how apps are related.
  */
 export interface SchemaHolder<
   _S extends Schema = Schema,
   _CurrentPath extends string = string,
   _Inferred extends boolean = boolean,
+  _E extends Env = Env,
 > {}
 
 ////////////////////////////////////////
@@ -147,14 +148,15 @@ export interface HandlerInterface<
     P extends string = CP2,
     I extends Input = BlankInput,
     R extends HandlerResponse<any> = any,
-    E2 extends Env = E,
+    E0 extends Env = E,
+    E2 extends Env = E0,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, CP2, Inferred>,
+    this: HonoThis<S2, CP2, Inferred, E0>,
     handler: H<E2, P, I, R>
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2]>,
+    IntersectNonAnyTypes<[E0, E2]>,
     S2 & ToSchema<M, P, I, MergeTypedResponse<R>>,
     BasePath,
     CP2
@@ -167,16 +169,17 @@ export interface HandlerInterface<
     I extends Input = BlankInput,
     I2 extends Input = I,
     R extends HandlerResponse<any> = any,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
     M1 extends H<E2, P, I> = H<E2, P, I>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, CP2, Inferred>,
+    this: HonoThis<S2, CP2, Inferred, E0>,
     ...handlers: [H<E2, P, I> & M1, H<E3, P, I2, R>]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3]>,
+    IntersectNonAnyTypes<[E0, E2, E3]>,
     S2 & ToSchema<M, P, I2, MergeTypedResponse<R> | MergeMiddlewareResponse<M1>>,
     BasePath,
     CP2
@@ -188,15 +191,16 @@ export interface HandlerInterface<
     MergedPath extends MergePath<BasePath, P>,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
-    E2 extends Env = E,
+    E0 extends Env = E,
+    E2 extends Env = E0,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     handler: H<E2, MergedPath, I, R>
   ): HonoBase<
-    E,
+    E0,
     AddSchemaIfHasResponse<MergeTypedResponse<R>, S2, M, P, I, BasePath>,
     BasePath,
     MergePath<BasePath, P>
@@ -210,19 +214,20 @@ export interface HandlerInterface<
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
     // Middleware
     M1 extends H<E2, P, I> = H<E2, P, I>,
     M2 extends H<E3, P, I2> = H<E3, P, I2>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, CP2, Inferred>,
+    this: HonoThis<S2, CP2, Inferred, E0>,
     ...handlers: [H<E2, P, I> & M1, H<E3, P, I2> & M2, H<E4, P, I3, R>]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4]>,
     S2 &
       ToSchema<
         M,
@@ -241,18 +246,19 @@ export interface HandlerInterface<
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [H<E2, MergedPath, I> & M1, H<E3, MergedPath, I2, R>]
   ): HonoBase<
-    E,
+    E0,
     AddSchemaIfHasResponse<
       MergeTypedResponse<R> | MergeMiddlewareResponse<M1>,
       S2,
@@ -274,10 +280,11 @@ export interface HandlerInterface<
     I2 extends Input = I,
     I3 extends Input = I & I2,
     I4 extends Input = I & I2 & I3,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
     // Middleware
     M1 extends H<E2, P, I> = H<E2, P, I>,
     M2 extends H<E3, P, I2> = H<E3, P, I2>,
@@ -285,10 +292,10 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, CP2, Inferred>,
+    this: HonoThis<S2, CP2, Inferred, E0>,
     ...handlers: [H<E2, P, I> & M1, H<E3, P, I2> & M2, H<E4, P, I3> & M3, H<E5, P, I4, R>]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
     S2 &
       ToSchema<
         M,
@@ -311,20 +318,21 @@ export interface HandlerInterface<
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [H<E2, MergedPath, I> & M1, H<E3, MergedPath, I2> & M2, H<E4, MergedPath, I3, R>]
   ): HonoBase<
-    E,
+    E0,
     AddSchemaIfHasResponse<
       MergeTypedResponse<R> | MergeMiddlewareResponse<M1> | MergeMiddlewareResponse<M2>,
       S2,
@@ -347,11 +355,12 @@ export interface HandlerInterface<
     I3 extends Input = I & I2,
     I4 extends Input = I & I2 & I3,
     I5 extends Input = I & I2 & I3 & I4,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
     // Middleware
     M1 extends H<E2, P, I> = H<E2, P, I>,
     M2 extends H<E3, P, I2> = H<E3, P, I2>,
@@ -360,7 +369,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, CP2, Inferred>,
+    this: HonoThis<S2, CP2, Inferred, E0>,
     ...handlers: [
       H<E2, P, I> & M1,
       H<E3, P, I2> & M2,
@@ -369,7 +378,7 @@ export interface HandlerInterface<
       H<E6, P, I5, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
     S2 &
       ToSchema<
         M,
@@ -394,10 +403,11 @@ export interface HandlerInterface<
     I2 extends Input = I,
     I3 extends Input = I & I2,
     I4 extends Input = I & I2 & I3,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -405,7 +415,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       H<E2, MergedPath, I> & M1,
@@ -414,7 +424,7 @@ export interface HandlerInterface<
       H<E5, MergedPath, I4, R>,
     ]
   ): HonoBase<
-    E,
+    E0,
     AddSchemaIfHasResponse<
       | MergeTypedResponse<R>
       | MergeMiddlewareResponse<M1>
@@ -441,12 +451,13 @@ export interface HandlerInterface<
     I4 extends Input = I & I2 & I3,
     I5 extends Input = I & I2 & I3 & I4,
     I6 extends Input = I & I2 & I3 & I4 & I5,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
     // Middleware
     M1 extends H<E2, P, I> = H<E2, P, I>,
     M2 extends H<E3, P, I2> = H<E3, P, I2>,
@@ -456,7 +467,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, CP2, Inferred>,
+    this: HonoThis<S2, CP2, Inferred, E0>,
     ...handlers: [
       H<E2, P, I> & M1,
       H<E3, P, I2> & M2,
@@ -466,7 +477,7 @@ export interface HandlerInterface<
       H<E7, P, I6, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
     S2 &
       ToSchema<
         M,
@@ -493,11 +504,12 @@ export interface HandlerInterface<
     I3 extends Input = I & I2,
     I4 extends Input = I & I2 & I3,
     I5 extends Input = I & I2 & I3 & I4,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -506,7 +518,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       H<E2, MergedPath, I> & M1,
@@ -516,7 +528,7 @@ export interface HandlerInterface<
       H<E6, MergedPath, I5, R>,
     ]
   ): HonoBase<
-    E,
+    E0,
     AddSchemaIfHasResponse<
       | MergeTypedResponse<R>
       | MergeMiddlewareResponse<M1>
@@ -545,13 +557,14 @@ export interface HandlerInterface<
     I5 extends Input = I & I2 & I3 & I4,
     I6 extends Input = I & I2 & I3 & I4 & I5,
     I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
     // Middleware
     M1 extends H<E2, P, I> = H<E2, P, I>,
     M2 extends H<E3, P, I2> = H<E3, P, I2>,
@@ -562,7 +575,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, CP2, Inferred>,
+    this: HonoThis<S2, CP2, Inferred, E0>,
     ...handlers: [
       H<E2, P, I> & M1,
       H<E3, P, I2> & M2,
@@ -573,7 +586,7 @@ export interface HandlerInterface<
       H<E8, P, I7, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
     S2 &
       ToSchema<
         M,
@@ -602,12 +615,13 @@ export interface HandlerInterface<
     I4 extends Input = I & I2 & I3,
     I5 extends Input = I & I2 & I3 & I4,
     I6 extends Input = I & I2 & I3 & I4 & I5,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -617,7 +631,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       H<E2, MergedPath, I> & M1,
@@ -628,7 +642,7 @@ export interface HandlerInterface<
       H<E7, MergedPath, I6, R>,
     ]
   ): HonoBase<
-    E,
+    E0,
     AddSchemaIfHasResponse<
       | MergeTypedResponse<R>
       | MergeMiddlewareResponse<M1>
@@ -659,14 +673,15 @@ export interface HandlerInterface<
     I6 extends Input = I & I2 & I3 & I4 & I5,
     I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
     I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
     // Middleware
     M1 extends H<E2, P, I> = H<E2, P, I>,
     M2 extends H<E3, P, I2> = H<E3, P, I2>,
@@ -678,7 +693,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, CP2, Inferred>,
+    this: HonoThis<S2, CP2, Inferred, E0>,
     ...handlers: [
       H<E2, P, I> & M1,
       H<E3, P, I2> & M2,
@@ -690,7 +705,7 @@ export interface HandlerInterface<
       H<E9, P, I8, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
     S2 &
       ToSchema<
         M,
@@ -721,13 +736,14 @@ export interface HandlerInterface<
     I5 extends Input = I & I2 & I3 & I4,
     I6 extends Input = I & I2 & I3 & I4 & I5,
     I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -738,7 +754,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       H<E2, MergedPath, I> & M1,
@@ -750,7 +766,7 @@ export interface HandlerInterface<
       H<E8, MergedPath, I7, R>,
     ]
   ): HonoBase<
-    E,
+    E0,
     AddSchemaIfHasResponse<
       | MergeTypedResponse<R>
       | MergeMiddlewareResponse<M1>
@@ -783,15 +799,16 @@ export interface HandlerInterface<
     I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
     I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
     I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
-    E10 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
+    E10 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
     // Middleware
     M1 extends H<E2, P, I> = H<E2, P, I>,
     M2 extends H<E3, P, I2> = H<E3, P, I2>,
@@ -804,7 +821,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, CP2, Inferred>,
+    this: HonoThis<S2, CP2, Inferred, E0>,
     ...handlers: [
       H<E2, P, I> & M1,
       H<E3, P, I2> & M2,
@@ -817,7 +834,7 @@ export interface HandlerInterface<
       H<E10, P, I9, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
     S2 &
       ToSchema<
         M,
@@ -850,14 +867,15 @@ export interface HandlerInterface<
     I6 extends Input = I & I2 & I3 & I4 & I5,
     I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
     I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -869,7 +887,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       H<E2, MergedPath, I> & M1,
@@ -882,7 +900,7 @@ export interface HandlerInterface<
       H<E9, MergedPath, I8, R>,
     ]
   ): HonoBase<
-    E,
+    E0,
     AddSchemaIfHasResponse<
       | MergeTypedResponse<R>
       | MergeMiddlewareResponse<M1>
@@ -917,16 +935,17 @@ export interface HandlerInterface<
     I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
     I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
     I10 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8 & I9,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
-    E10 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
-    E11 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
+    E10 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    E11 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
     // Middleware
     M1 extends H<E2, P, I> = H<E2, P, I>,
     M2 extends H<E3, P, I2> = H<E3, P, I2>,
@@ -940,7 +959,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, CP2, Inferred>,
+    this: HonoThis<S2, CP2, Inferred, E0>,
     ...handlers: [
       H<E2, P, I> & M1,
       H<E3, P, I2> & M2,
@@ -954,7 +973,7 @@ export interface HandlerInterface<
       H<E11, P, I10, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11]>,
     S2 &
       ToSchema<
         M,
@@ -989,15 +1008,16 @@ export interface HandlerInterface<
     I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
     I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
     I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
-    E10 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
+    E10 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -1010,7 +1030,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       H<E2, MergedPath, I> & M1,
@@ -1024,7 +1044,7 @@ export interface HandlerInterface<
       H<E10, MergedPath, I9, R>,
     ]
   ): HonoBase<
-    E,
+    E0,
     AddSchemaIfHasResponse<
       | MergeTypedResponse<R>
       | MergeMiddlewareResponse<M1>
@@ -1060,16 +1080,17 @@ export interface HandlerInterface<
     I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
     I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
     I10 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8 & I9,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
-    E10 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
-    E11 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
+    E10 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    E11 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -1083,7 +1104,7 @@ export interface HandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       H<E2, MergedPath, I> & M1,
@@ -1098,7 +1119,7 @@ export interface HandlerInterface<
       H<E11, MergedPath, I10, R>,
     ]
   ): HonoBase<
-    E,
+    E0,
     AddSchemaIfHasResponse<
       | MergeTypedResponse<R>
       | MergeMiddlewareResponse<M1>
@@ -1126,26 +1147,28 @@ export interface HandlerInterface<
     P extends string = CP2,
     I extends Input = BlankInput,
     R extends HandlerResponse<any> = any,
+    E0 extends Env = E,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, CP2, Inferred>,
-    ...handlers: H<E, P, I, R>[]
-  ): HonoBase<E, S2 & ToSchema<M, P, I, MergeTypedResponse<R>>, BasePath, CP2>
+    this: HonoThis<S2, CP2, Inferred, E0>,
+    ...handlers: H<E0, P, I, R>[]
+  ): HonoBase<E0, S2 & ToSchema<M, P, I, MergeTypedResponse<R>>, BasePath, CP2>
 
   // app.get(path, ...handlers[])
   <
     P extends string,
     I extends Input = BlankInput,
     R extends HandlerResponse<any> = any,
+    E0 extends Env = E,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
-    ...handlers: [H<E, MergePath<BasePath, P>, I, R>, ...H<E, MergePath<BasePath, P>, I, R>[]]
+    ...handlers: [H<E0, MergePath<BasePath, P>, I, R>, ...H<E0, MergePath<BasePath, P>, I, R>[]]
   ): HonoBase<
-    E,
+    E0,
     S2 & ToSchema<M, MergePath<BasePath, P>, I, MergeTypedResponse<R>>,
     BasePath,
     MergePath<BasePath, P>
@@ -1156,13 +1179,14 @@ export interface HandlerInterface<
     P extends string,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
+    E0 extends Env = E,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P
   ): HonoBase<
-    E,
+    E0,
     S2 & ToSchema<M, MergePath<BasePath, P>, I, MergeTypedResponse<R>>,
     BasePath,
     MergePath<BasePath, P>
@@ -1181,119 +1205,136 @@ export interface MiddlewareHandlerInterface<
   BasePath extends string = '/',
 > {
   //// app.use(...handlers[])
-  <E2 extends Env = E, S2 extends Schema = S, Inferred extends boolean = false>(
-    this: HonoThis<S2, string, Inferred>,
+  <
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    S2 extends Schema = S,
+    Inferred extends boolean = false,
+  >(
+    this: HonoThis<S2, string, Inferred, E0>,
     ...handlers: MiddlewareHandler<E2, MergePath<BasePath, '*'>>[]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2]>, S2, BasePath, MergePath<BasePath, '*'>>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2]>, S2, BasePath, MergePath<BasePath, '*'>>
 
   // app.use(handler)
-  <E2 extends Env = E, S2 extends Schema = S, Inferred extends boolean = false>(
-    this: HonoThis<S2, string, Inferred>,
+  <
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    S2 extends Schema = S,
+    Inferred extends boolean = false,
+  >(
+    this: HonoThis<S2, string, Inferred, E0>,
     handler: MiddlewareHandler<E2, MergePath<BasePath, '*'>>
-  ): HonoBase<IntersectNonAnyTypes<[E, E2]>, S2, BasePath, MergePath<BasePath, '*'>>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2]>, S2, BasePath, MergePath<BasePath, '*'>>
 
   // app.use(handler x2)
   <
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
     P extends string = MergePath<BasePath, '*'>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     ...handlers: [MiddlewareHandler<E2, P>, MiddlewareHandler<E3, P>]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3]>, S2, BasePath, P>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3]>, S2, BasePath, P>
 
   // app.use(path, handler)
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P>,
-    E2 extends Env = E,
+    E0 extends Env = E,
+    E2 extends Env = E0,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     handler: MiddlewareHandler<E2, MergedPath, any, any>
-  ): HonoBase<IntersectNonAnyTypes<[E, E2]>, S2, BasePath, MergedPath>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2]>, S2, BasePath, MergedPath>
 
   // app.use(handler x3)
   <
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
     P extends string = MergePath<BasePath, '*'>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     ...handlers: [
       MiddlewareHandler<E2, P, any, any>,
       MiddlewareHandler<E3, P, any, any>,
       MiddlewareHandler<E4, P, any, any>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4]>, S2, BasePath, P>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4]>, S2, BasePath, P>
 
   // app.use(path, handler x2)
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P>,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [MiddlewareHandler<E2, P>, MiddlewareHandler<E3, P>]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3]>, S2, BasePath, MergedPath>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3]>, S2, BasePath, MergedPath>
 
   // app.use(handler x4)
   <
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
     P extends string = MergePath<BasePath, '*'>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     ...handlers: [
       MiddlewareHandler<E2, P>,
       MiddlewareHandler<E3, P>,
       MiddlewareHandler<E4, P>,
       MiddlewareHandler<E5, P>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5]>, S2, BasePath, P>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>, S2, BasePath, P>
 
   // app.use(path, handler x3)
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P>,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [MiddlewareHandler<E2, P>, MiddlewareHandler<E3, P>, MiddlewareHandler<E4, P>]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4]>, S2, BasePath, MergedPath>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4]>, S2, BasePath, MergedPath>
 
   // app.use(handler x5)
   <
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
     P extends string = MergePath<BasePath, '*'>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     ...handlers: [
       MiddlewareHandler<E2, P>,
       MiddlewareHandler<E3, P>,
@@ -1301,20 +1342,21 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E5, P>,
       MiddlewareHandler<E6, P>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>, S2, BasePath, P>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>, S2, BasePath, P>
 
   // app.use(path, handler x4)
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P>,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       MiddlewareHandler<E2, P>,
@@ -1322,21 +1364,22 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E4, P>,
       MiddlewareHandler<E5, P>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5]>, S2, BasePath, MergedPath>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>, S2, BasePath, MergedPath>
 
   // app.use(handler x6)
   <
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
     P extends string = MergePath<BasePath, '*'>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     ...handlers: [
       MiddlewareHandler<E2, P>,
       MiddlewareHandler<E3, P>,
@@ -1345,21 +1388,22 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E6, P>,
       MiddlewareHandler<E7, P>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>, S2, BasePath, P>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>, S2, BasePath, P>
 
   // app.use(path, handler x5)
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P>,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       MiddlewareHandler<E2, P>,
@@ -1368,22 +1412,23 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E5, P>,
       MiddlewareHandler<E6, P>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>, S2, BasePath, MergedPath>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>, S2, BasePath, MergedPath>
 
   // app.use(handler x7)
   <
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
     P extends string = MergePath<BasePath, '*'>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     ...handlers: [
       MiddlewareHandler<E2, P>,
       MiddlewareHandler<E3, P>,
@@ -1393,22 +1438,23 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E7, P>,
       MiddlewareHandler<E8, P>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>, S2, BasePath, P>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>, S2, BasePath, P>
 
   // app.use(path, handler x6)
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P>,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       MiddlewareHandler<E2, P>,
@@ -1418,23 +1464,24 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E6, P>,
       MiddlewareHandler<E7, P>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>, S2, BasePath, MergedPath>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>, S2, BasePath, MergedPath>
 
   // app.use(handler x8)
   <
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
     P extends string = MergePath<BasePath, '*'>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     ...handlers: [
       MiddlewareHandler<E2, P>,
       MiddlewareHandler<E3, P>,
@@ -1445,23 +1492,24 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E8, P>,
       MiddlewareHandler<E9, P>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>, S2, BasePath, P>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>, S2, BasePath, P>
 
   // app.use(path, handler x7)
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P>,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       MiddlewareHandler<E2, P>,
@@ -1472,24 +1520,25 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E7, P>,
       MiddlewareHandler<E8, P>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>, S2, BasePath, MergedPath>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>, S2, BasePath, MergedPath>
 
   // app.use(handler x9)
   <
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
-    E10 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
+    E10 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
     P extends string = MergePath<BasePath, '*'>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     ...handlers: [
       MiddlewareHandler<E2, P>,
       MiddlewareHandler<E3, P>,
@@ -1501,24 +1550,25 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E9, P>,
       MiddlewareHandler<E10, P>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>, S2, BasePath, P>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10]>, S2, BasePath, P>
 
   // app.use(path, handler x8)
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P>,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       MiddlewareHandler<E2, P>,
@@ -1530,25 +1580,26 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E8, P>,
       MiddlewareHandler<E9, P>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>, S2, BasePath, MergedPath>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>, S2, BasePath, MergedPath>
 
   // app.use(handler x10)
   <
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
-    E10 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
-    E11 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
+    E10 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    E11 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
     P extends string = MergePath<BasePath, '*'>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     ...handlers: [
       MiddlewareHandler<E2, P>,
       MiddlewareHandler<E3, P>,
@@ -1561,25 +1612,26 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E10, P>,
       MiddlewareHandler<E11, P>,
     ]
-  ): HonoBase<IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11]>, S2, BasePath, P>
+  ): HonoBase<IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11]>, S2, BasePath, P>
 
   // app.use(path, handler x9)
   <
     P extends string,
     MergedPath extends MergePath<BasePath, P>,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
-    E10 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
+    E10 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: [
       MiddlewareHandler<E2, P>,
@@ -1593,18 +1645,24 @@ export interface MiddlewareHandlerInterface<
       MiddlewareHandler<E10, P>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
     S2,
     BasePath,
     MergedPath
   >
 
   //// app.use(path, ...handlers[])
-  <P extends string, E2 extends Env = E, S2 extends Schema = S, Inferred extends boolean = false>(
-    this: HonoThis<S2, string, Inferred>,
+  <
+    P extends string,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    S2 extends Schema = S,
+    Inferred extends boolean = false,
+  >(
+    this: HonoThis<S2, string, Inferred, E0>,
     path: P,
     ...handlers: MiddlewareHandler<E2, MergePath<BasePath, P>>[]
-  ): HonoBase<E, S2, BasePath, MergePath<BasePath, P>>
+  ): HonoBase<E0, S2, BasePath, MergePath<BasePath, P>>
 }
 
 ////////////////////////////////////////
@@ -1625,16 +1683,17 @@ export interface OnHandlerInterface<
     MergedPath extends MergePath<BasePath, P>,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
-    E2 extends Env = E,
+    E0 extends Env = E,
+    E2 extends Env = E0,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     method: M,
     path: P,
     handler: H<E2, MergedPath, I, R>
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2]>,
+    IntersectNonAnyTypes<[E0, E2]>,
     S2 & ToSchema<M, MergePath<BasePath, P>, I, MergeTypedResponse<R>>,
     BasePath,
     MergePath<BasePath, P>
@@ -1648,19 +1707,20 @@ export interface OnHandlerInterface<
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     method: M,
     path: P,
     ...handlers: [H<E2, MergedPath, I> & M1, H<E3, MergedPath, I2, R>]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3]>,
+    IntersectNonAnyTypes<[E0, E2, E3]>,
     S2 &
       ToSchema<M, MergePath<BasePath, P>, I2, MergeTypedResponse<R> | MergeMiddlewareResponse<M1>>,
     BasePath,
@@ -1676,21 +1736,22 @@ export interface OnHandlerInterface<
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     method: M,
     path: P,
     ...handlers: [H<E2, MergedPath, I> & M1, H<E3, MergedPath, I2> & M2, H<E4, MergedPath, I3, R>]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4]>,
     S2 &
       ToSchema<
         M,
@@ -1712,10 +1773,11 @@ export interface OnHandlerInterface<
     I2 extends Input = I,
     I3 extends Input = I & I2,
     I4 extends Input = I & I2 & I3,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -1723,7 +1785,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     method: M,
     path: P,
     ...handlers: [
@@ -1733,7 +1795,7 @@ export interface OnHandlerInterface<
       H<E5, MergedPath, I4, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
     S2 &
       ToSchema<
         M,
@@ -1759,11 +1821,12 @@ export interface OnHandlerInterface<
     I3 extends Input = I & I2,
     I4 extends Input = I & I2 & I3,
     I5 extends Input = I & I2 & I3 & I4,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -1772,7 +1835,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     method: M,
     path: P,
     ...handlers: [
@@ -1783,7 +1846,7 @@ export interface OnHandlerInterface<
       H<E6, MergedPath, I5, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
     S2 &
       ToSchema<
         M,
@@ -1811,12 +1874,13 @@ export interface OnHandlerInterface<
     I4 extends Input = I & I2 & I3,
     I5 extends Input = I & I2 & I3 & I4,
     I6 extends Input = I & I2 & I3 & I4 & I5,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -1826,7 +1890,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     method: M,
     path: P,
     ...handlers: [
@@ -1838,7 +1902,7 @@ export interface OnHandlerInterface<
       H<E7, MergedPath, I6, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
     S2 &
       ToSchema<
         M,
@@ -1868,13 +1932,14 @@ export interface OnHandlerInterface<
     I5 extends Input = I & I2 & I3 & I4,
     I6 extends Input = I & I2 & I3 & I4 & I5,
     I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -1885,7 +1950,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     method: M,
     path: P,
     ...handlers: [
@@ -1898,7 +1963,7 @@ export interface OnHandlerInterface<
       H<E8, MergedPath, I7, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
     S2 &
       ToSchema<
         M,
@@ -1930,14 +1995,15 @@ export interface OnHandlerInterface<
     I6 extends Input = I & I2 & I3 & I4 & I5,
     I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
     I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -1949,7 +2015,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     method: M,
     path: P,
     ...handlers: [
@@ -1963,7 +2029,7 @@ export interface OnHandlerInterface<
       H<E9, MergedPath, I8, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
     S2 &
       ToSchema<
         M,
@@ -1997,15 +2063,16 @@ export interface OnHandlerInterface<
     I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
     I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
     I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
-    E10 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
+    E10 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -2018,7 +2085,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     method: M,
     path: P,
     ...handlers: [
@@ -2033,7 +2100,7 @@ export interface OnHandlerInterface<
       H<E10, MergedPath, I9, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
     S2 &
       ToSchema<
         M,
@@ -2069,16 +2136,17 @@ export interface OnHandlerInterface<
     I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
     I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
     I10 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8 & I9,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
-    E10 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
-    E11 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
+    E10 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    E11 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -2092,7 +2160,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     method: M,
     path: P,
     ...handlers: [
@@ -2108,7 +2176,7 @@ export interface OnHandlerInterface<
       H<E11, MergedPath, I10, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11]>,
     S2 &
       ToSchema<
         M,
@@ -2135,15 +2203,16 @@ export interface OnHandlerInterface<
     P extends string,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
+    E0 extends Env = E,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     method: M,
     path: P,
-    ...handlers: [H<E, MergePath<BasePath, P>, I, R>, ...H<E, MergePath<BasePath, P>, I, R>[]]
+    ...handlers: [H<E0, MergePath<BasePath, P>, I, R>, ...H<E0, MergePath<BasePath, P>, I, R>[]]
   ): HonoBase<
-    E,
+    E0,
     S2 & ToSchema<M, MergePath<BasePath, P>, I, MergeTypedResponse<R>>,
     BasePath,
     MergePath<BasePath, P>
@@ -2156,16 +2225,17 @@ export interface OnHandlerInterface<
     MergedPath extends MergePath<BasePath, P>,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
-    E2 extends Env = E,
+    E0 extends Env = E,
+    E2 extends Env = E0,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     methods: M[],
     path: P,
     handler: H<E2, MergedPath, I, R>
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2]>,
+    IntersectNonAnyTypes<[E0, E2]>,
     S2 & ToSchema<M, MergePath<BasePath, P>, I, MergeTypedResponse<R>>,
     BasePath,
     MergePath<BasePath, P>
@@ -2179,19 +2249,20 @@ export interface OnHandlerInterface<
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     methods: M[],
     path: P,
     ...handlers: [H<E2, MergedPath, I> & M1, H<E3, MergedPath, I2, R>]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3]>,
+    IntersectNonAnyTypes<[E0, E2, E3]>,
     S2 &
       ToSchema<M, MergePath<BasePath, P>, I2, MergeTypedResponse<R> | MergeMiddlewareResponse<M1>>,
     BasePath,
@@ -2207,21 +2278,22 @@ export interface OnHandlerInterface<
     I extends Input = BlankInput,
     I2 extends Input = I,
     I3 extends Input = I & I2,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     methods: M[],
     path: P,
     ...handlers: [H<E2, MergedPath, I> & M1, H<E3, MergedPath, I2> & M2, H<E4, MergedPath, I3, R>]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4]>,
     S2 &
       ToSchema<
         M,
@@ -2243,10 +2315,11 @@ export interface OnHandlerInterface<
     I2 extends Input = I,
     I3 extends Input = I & I2,
     I4 extends Input = I & I2 & I3,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -2254,7 +2327,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     methods: M[],
     path: P,
     ...handlers: [
@@ -2264,7 +2337,7 @@ export interface OnHandlerInterface<
       H<E5, MergedPath, I4, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
     S2 &
       ToSchema<
         M,
@@ -2290,11 +2363,12 @@ export interface OnHandlerInterface<
     I3 extends Input = I & I2,
     I4 extends Input = I & I2 & I3,
     I5 extends Input = I & I2 & I3 & I4,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -2303,7 +2377,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     methods: M[],
     path: P,
     ...handlers: [
@@ -2314,7 +2388,7 @@ export interface OnHandlerInterface<
       H<E6, MergedPath, I5, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
     S2 &
       ToSchema<
         M,
@@ -2342,12 +2416,13 @@ export interface OnHandlerInterface<
     I4 extends Input = I & I2 & I3,
     I5 extends Input = I & I2 & I3 & I4,
     I6 extends Input = I & I2 & I3 & I4 & I5,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -2357,7 +2432,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     methods: M[],
     path: P,
     ...handlers: [
@@ -2369,7 +2444,7 @@ export interface OnHandlerInterface<
       H<E7, MergedPath, I6, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
     S2 &
       ToSchema<
         M,
@@ -2399,13 +2474,14 @@ export interface OnHandlerInterface<
     I5 extends Input = I & I2 & I3 & I4,
     I6 extends Input = I & I2 & I3 & I4 & I5,
     I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -2416,7 +2492,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     methods: M[],
     path: P,
     ...handlers: [
@@ -2429,7 +2505,7 @@ export interface OnHandlerInterface<
       H<E8, MergedPath, I7, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
     S2 &
       ToSchema<
         M,
@@ -2461,14 +2537,15 @@ export interface OnHandlerInterface<
     I6 extends Input = I & I2 & I3 & I4 & I5,
     I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
     I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -2480,7 +2557,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     methods: M[],
     path: P,
     ...handlers: [
@@ -2494,7 +2571,7 @@ export interface OnHandlerInterface<
       H<E9, MergedPath, I8, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
     S2 &
       ToSchema<
         M,
@@ -2528,15 +2605,16 @@ export interface OnHandlerInterface<
     I7 extends Input = I & I2 & I3 & I4 & I5 & I6,
     I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
     I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
-    E10 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
+    E10 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -2549,7 +2627,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     methods: M[],
     path: P,
     ...handlers: [
@@ -2564,7 +2642,7 @@ export interface OnHandlerInterface<
       H<E10, MergedPath, I9, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
     S2 &
       ToSchema<
         M,
@@ -2600,16 +2678,17 @@ export interface OnHandlerInterface<
     I8 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7,
     I9 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8,
     I10 extends Input = I & I2 & I3 & I4 & I5 & I6 & I7 & I8 & I9,
-    E2 extends Env = E,
-    E3 extends Env = IntersectNonAnyTypes<[E, E2]>,
-    E4 extends Env = IntersectNonAnyTypes<[E, E2, E3]>,
-    E5 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4]>,
-    E6 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
-    E7 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6]>,
-    E8 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7]>,
-    E9 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8]>,
-    E10 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9]>,
-    E11 extends Env = IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
+    E0 extends Env = E,
+    E2 extends Env = E0,
+    E3 extends Env = IntersectNonAnyTypes<[E0, E2]>,
+    E4 extends Env = IntersectNonAnyTypes<[E0, E2, E3]>,
+    E5 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4]>,
+    E6 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5]>,
+    E7 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6]>,
+    E8 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7]>,
+    E9 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8]>,
+    E10 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9]>,
+    E11 extends Env = IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10]>,
     // Middleware
     M1 extends H<E2, MergedPath, I> = H<E2, MergedPath, I>,
     M2 extends H<E3, MergedPath, I2> = H<E3, MergedPath, I2>,
@@ -2623,7 +2702,7 @@ export interface OnHandlerInterface<
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     methods: M[],
     path: P,
     ...handlers: [
@@ -2639,7 +2718,7 @@ export interface OnHandlerInterface<
       H<E11, MergedPath, I10, R>,
     ]
   ): HonoBase<
-    IntersectNonAnyTypes<[E, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11]>,
+    IntersectNonAnyTypes<[E0, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11]>,
     S2 &
       ToSchema<
         M,
@@ -2666,15 +2745,16 @@ export interface OnHandlerInterface<
     P extends string,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
+    E0 extends Env = E,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     methods: M[],
     path: P,
-    ...handlers: [H<E, MergePath<BasePath, P>, I, R>, ...H<E, MergePath<BasePath, P>, I, R>[]]
+    ...handlers: [H<E0, MergePath<BasePath, P>, I, R>, ...H<E0, MergePath<BasePath, P>, I, R>[]]
   ): HonoBase<
-    E,
+    E0,
     S2 & ToSchema<M, MergePath<BasePath, P>, I, MergeTypedResponse<R>>,
     BasePath,
     MergePath<BasePath, P>
@@ -2686,16 +2766,17 @@ export interface OnHandlerInterface<
     const Ps extends string[],
     I extends Input = BlankInput,
     R extends HandlerResponse<any> = any,
-    E2 extends Env = E,
+    E0 extends Env = E,
+    E2 extends Env = E0,
     S2 extends Schema = S,
     Inferred extends boolean = false,
   >(
-    this: HonoThis<S2, string, Inferred>,
+    this: HonoThis<S2, string, Inferred, E0>,
     methods: M | M[],
     paths: Ps,
     ...handlers: H<E2, MergePath<BasePath, Ps[number]>, I, R>[]
   ): HonoBase<
-    E,
+    E0,
     S2 & ToSchema<M, MergePath<BasePath, Ps[number]>, I, MergeTypedResponse<R>>,
     BasePath,
     Ps extends [...string[], infer LastPath extends string] ? MergePath<BasePath, LastPath> : never

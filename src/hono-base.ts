@@ -49,7 +49,7 @@ const errorHandler: ErrorHandler = (err, c) => {
 declare const schemaKey: unique symbol
 
 /**
- * The `this` of a handler registration method. The schema (and the current path) of the app is inferred from it
+ * The `this` of a handler registration method. The schema, the current path and the env of the app are inferred from it
  * instead of being a type parameter of the method type, so that `HonoBase` members do not have to be re-instantiated
  * (with all of their overloads and type parameters) every time a route is added.
  * It is inferred from `HonoBase[schemaKey]` rather than from `HonoBase<any, S, any, any>`, so that it does not
@@ -62,8 +62,9 @@ export type HonoThis<
   S extends Schema,
   CurrentPath extends string = string,
   Inferred extends boolean = true,
+  E extends Env = Env,
 > = [Inferred] extends [true]
-  ? { readonly [schemaKey]?: SchemaHolder<S, CurrentPath, Inferred> } | object | void
+  ? { readonly [schemaKey]?: SchemaHolder<S, CurrentPath, Inferred, E> } | object | void
   : SchemaCannotBeInferred
 
 /**
@@ -135,23 +136,23 @@ class Hono<
   BasePath extends string = '/',
   CurrentPath extends string = BasePath,
 > {
-  // The schema and the current path are not passed to the method types: each method infers them from `this`, so that
-  // these member types stay the same while routes are added and their overloads are not instantiated again for every
-  // new schema or path.
-  get!: HandlerInterface<E, 'get', never, BasePath, never>
-  post!: HandlerInterface<E, 'post', never, BasePath, never>
-  put!: HandlerInterface<E, 'put', never, BasePath, never>
-  delete!: HandlerInterface<E, 'delete', never, BasePath, never>
-  options!: HandlerInterface<E, 'options', never, BasePath, never>
-  patch!: HandlerInterface<E, 'patch', never, BasePath, never>
-  query!: HandlerInterface<E, 'query', never, BasePath, never>
-  all!: HandlerInterface<E, 'all', never, BasePath, never>
-  on: OnHandlerInterface<E, never, BasePath>
-  use: MiddlewareHandlerInterface<E, never, BasePath>
+  // The schema, the current path and the env are not passed to the method types: each method infers them from `this`,
+  // so that these member types stay the same while routes and middleware are added and their overloads are not
+  // instantiated again for every new schema, path or env.
+  get!: HandlerInterface<never, 'get', never, BasePath, never>
+  post!: HandlerInterface<never, 'post', never, BasePath, never>
+  put!: HandlerInterface<never, 'put', never, BasePath, never>
+  delete!: HandlerInterface<never, 'delete', never, BasePath, never>
+  options!: HandlerInterface<never, 'options', never, BasePath, never>
+  patch!: HandlerInterface<never, 'patch', never, BasePath, never>
+  query!: HandlerInterface<never, 'query', never, BasePath, never>
+  all!: HandlerInterface<never, 'all', never, BasePath, never>
+  on: OnHandlerInterface<never, never, BasePath>
+  use: MiddlewareHandlerInterface<never, never, BasePath>
   /**
-   * Type-only. The schema and the current path of the app, from which the methods above infer them.
+   * Type-only. The schema, the current path and the env of the app, from which the methods above infer them.
    */
-  declare readonly [schemaKey]?: SchemaHolder<S, CurrentPath, true>
+  declare readonly [schemaKey]?: SchemaHolder<S, CurrentPath, true, E>
 
   /*
     This class is like an abstract class and does not have a router.
