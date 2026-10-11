@@ -119,10 +119,10 @@ export type ErrorHandler<E extends Env = any> = (
 ) => Response | Promise<Response>
 
 /**
- * Holds the schema of an app in the type-only `HonoBase[schemaKey]` property (see `HonoThis` in `hono-base.ts`).
- * It does not use `_S`, so it does not change how apps with different schemas are related.
+ * Holds the schema and the current path of an app in the type-only `HonoBase[schemaKey]` property (see `HonoThis` in
+ * `hono-base.ts`). It does not use `_S` and `_CurrentPath`, so it does not change how apps are related.
  */
-export interface SchemaHolder<_S extends Schema = Schema> {}
+export interface SchemaHolder<_S extends Schema = Schema, _CurrentPath extends string = string> {}
 
 ////////////////////////////////////////
 //////                            //////
@@ -139,24 +139,26 @@ export interface HandlerInterface<
 > {
   // app.get(handler)
   <
-    P extends string = CurrentPath,
+    CP2 extends string = CurrentPath,
+    P extends string = CP2,
     I extends Input = BlankInput,
     R extends HandlerResponse<any> = any,
     E2 extends Env = E,
     S2 extends Schema = S,
   >(
-    this: HonoThis<S2>,
+    this: HonoThis<S2, CP2>,
     handler: H<E2, P, I, R>
   ): HonoBase<
     IntersectNonAnyTypes<[E, E2]>,
     S2 & ToSchema<M, P, I, MergeTypedResponse<R>>,
     BasePath,
-    CurrentPath
+    CP2
   >
 
   // app.get(handler x2)
   <
-    P extends string = CurrentPath,
+    CP2 extends string = CurrentPath,
+    P extends string = CP2,
     I extends Input = BlankInput,
     I2 extends Input = I,
     R extends HandlerResponse<any> = any,
@@ -165,13 +167,13 @@ export interface HandlerInterface<
     M1 extends H<E2, P, I> = H<E2, P, I>,
     S2 extends Schema = S,
   >(
-    this: HonoThis<S2>,
+    this: HonoThis<S2, CP2>,
     ...handlers: [H<E2, P, I> & M1, H<E3, P, I2, R>]
   ): HonoBase<
     IntersectNonAnyTypes<[E, E2, E3]>,
     S2 & ToSchema<M, P, I2, MergeTypedResponse<R> | MergeMiddlewareResponse<M1>>,
     BasePath,
-    CurrentPath
+    CP2
   >
 
   // app.get(path, handler)
@@ -195,7 +197,8 @@ export interface HandlerInterface<
 
   // app.get(handler x 3)
   <
-    P extends string = CurrentPath,
+    CP2 extends string = CurrentPath,
+    P extends string = CP2,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
@@ -208,7 +211,7 @@ export interface HandlerInterface<
     M2 extends H<E3, P, I2> = H<E3, P, I2>,
     S2 extends Schema = S,
   >(
-    this: HonoThis<S2>,
+    this: HonoThis<S2, CP2>,
     ...handlers: [H<E2, P, I> & M1, H<E3, P, I2> & M2, H<E4, P, I3, R>]
   ): HonoBase<
     IntersectNonAnyTypes<[E, E2, E3, E4]>,
@@ -220,7 +223,7 @@ export interface HandlerInterface<
         MergeTypedResponse<R> | MergeMiddlewareResponse<M1> | MergeMiddlewareResponse<M2>
       >,
     BasePath,
-    CurrentPath
+    CP2
   >
 
   // app.get(path, handler x2)
@@ -255,7 +258,8 @@ export interface HandlerInterface<
 
   // app.get(handler x 4)
   <
-    P extends string = CurrentPath,
+    CP2 extends string = CurrentPath,
+    P extends string = CP2,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
@@ -271,7 +275,7 @@ export interface HandlerInterface<
     M3 extends H<E4, P, I3> = H<E4, P, I3>,
     S2 extends Schema = S,
   >(
-    this: HonoThis<S2>,
+    this: HonoThis<S2, CP2>,
     ...handlers: [H<E2, P, I> & M1, H<E3, P, I2> & M2, H<E4, P, I3> & M3, H<E5, P, I4, R>]
   ): HonoBase<
     IntersectNonAnyTypes<[E, E2, E3, E4, E5]>,
@@ -286,7 +290,7 @@ export interface HandlerInterface<
         | MergeMiddlewareResponse<M3>
       >,
     BasePath,
-    CurrentPath
+    CP2
   >
 
   // app.get(path, handler x3)
@@ -324,7 +328,8 @@ export interface HandlerInterface<
 
   // app.get(handler x 5)
   <
-    P extends string = CurrentPath,
+    CP2 extends string = CurrentPath,
+    P extends string = CP2,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
@@ -343,7 +348,7 @@ export interface HandlerInterface<
     M4 extends H<E5, P, I4> = H<E5, P, I4>,
     S2 extends Schema = S,
   >(
-    this: HonoThis<S2>,
+    this: HonoThis<S2, CP2>,
     ...handlers: [
       H<E2, P, I> & M1,
       H<E3, P, I2> & M2,
@@ -365,7 +370,7 @@ export interface HandlerInterface<
         | MergeMiddlewareResponse<M4>
       >,
     BasePath,
-    CurrentPath
+    CP2
   >
 
   // app.get(path, handler x4)
@@ -414,7 +419,8 @@ export interface HandlerInterface<
 
   // app.get(handler x 6)
   <
-    P extends string = CurrentPath,
+    CP2 extends string = CurrentPath,
+    P extends string = CP2,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
@@ -436,7 +442,7 @@ export interface HandlerInterface<
     M5 extends H<E6, P, I5> = H<E6, P, I5>,
     S2 extends Schema = S,
   >(
-    this: HonoThis<S2>,
+    this: HonoThis<S2, CP2>,
     ...handlers: [
       H<E2, P, I> & M1,
       H<E3, P, I2> & M2,
@@ -460,7 +466,7 @@ export interface HandlerInterface<
         | MergeMiddlewareResponse<M5>
       >,
     BasePath,
-    CurrentPath
+    CP2
   >
 
   // app.get(path, handler x5)
@@ -514,7 +520,8 @@ export interface HandlerInterface<
 
   // app.get(handler x 7)
   <
-    P extends string = CurrentPath,
+    CP2 extends string = CurrentPath,
+    P extends string = CP2,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
@@ -539,7 +546,7 @@ export interface HandlerInterface<
     M6 extends H<E7, P, I6> = H<E7, P, I6>,
     S2 extends Schema = S,
   >(
-    this: HonoThis<S2>,
+    this: HonoThis<S2, CP2>,
     ...handlers: [
       H<E2, P, I> & M1,
       H<E3, P, I2> & M2,
@@ -565,7 +572,7 @@ export interface HandlerInterface<
         | MergeMiddlewareResponse<M6>
       >,
     BasePath,
-    CurrentPath
+    CP2
   >
 
   // app.get(path, handler x6)
@@ -624,7 +631,8 @@ export interface HandlerInterface<
 
   // app.get(handler x 8)
   <
-    P extends string = CurrentPath,
+    CP2 extends string = CurrentPath,
+    P extends string = CP2,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
@@ -652,7 +660,7 @@ export interface HandlerInterface<
     M7 extends H<E8, P, I7> = H<E8, P, I7>,
     S2 extends Schema = S,
   >(
-    this: HonoThis<S2>,
+    this: HonoThis<S2, CP2>,
     ...handlers: [
       H<E2, P, I> & M1,
       H<E3, P, I2> & M2,
@@ -680,7 +688,7 @@ export interface HandlerInterface<
         | MergeMiddlewareResponse<M7>
       >,
     BasePath,
-    CurrentPath
+    CP2
   >
 
   // app.get(path, handler x7)
@@ -744,7 +752,8 @@ export interface HandlerInterface<
 
   // app.get(handler x 9)
   <
-    P extends string = CurrentPath,
+    CP2 extends string = CurrentPath,
+    P extends string = CP2,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
@@ -775,7 +784,7 @@ export interface HandlerInterface<
     M8 extends H<E9, P, I8> = H<E9, P, I8>,
     S2 extends Schema = S,
   >(
-    this: HonoThis<S2>,
+    this: HonoThis<S2, CP2>,
     ...handlers: [
       H<E2, P, I> & M1,
       H<E3, P, I2> & M2,
@@ -805,7 +814,7 @@ export interface HandlerInterface<
         | MergeMiddlewareResponse<M8>
       >,
     BasePath,
-    CurrentPath
+    CP2
   >
 
   // app.get(path, handler x8)
@@ -874,7 +883,8 @@ export interface HandlerInterface<
 
   // app.get(handler x 10)
   <
-    P extends string = CurrentPath,
+    CP2 extends string = CurrentPath,
+    P extends string = CP2,
     R extends HandlerResponse<any> = any,
     I extends Input = BlankInput,
     I2 extends Input = I,
@@ -908,7 +918,7 @@ export interface HandlerInterface<
     M9 extends H<E10, P, I9> = H<E10, P, I9>,
     S2 extends Schema = S,
   >(
-    this: HonoThis<S2>,
+    this: HonoThis<S2, CP2>,
     ...handlers: [
       H<E2, P, I> & M1,
       H<E3, P, I2> & M2,
@@ -940,7 +950,7 @@ export interface HandlerInterface<
         | MergeMiddlewareResponse<M9>
       >,
     BasePath,
-    CurrentPath
+    CP2
   >
 
   // app.get(path, handler x9)
@@ -1088,14 +1098,15 @@ export interface HandlerInterface<
 
   // app.get(...handlers[])
   <
-    P extends string = CurrentPath,
+    CP2 extends string = CurrentPath,
+    P extends string = CP2,
     I extends Input = BlankInput,
     R extends HandlerResponse<any> = any,
     S2 extends Schema = S,
   >(
-    this: HonoThis<S2>,
+    this: HonoThis<S2, CP2>,
     ...handlers: H<E, P, I, R>[]
-  ): HonoBase<E, S2 & ToSchema<M, P, I, MergeTypedResponse<R>>, BasePath, CurrentPath>
+  ): HonoBase<E, S2 & ToSchema<M, P, I, MergeTypedResponse<R>>, BasePath, CP2>
 
   // app.get(path, ...handlers[])
   <
