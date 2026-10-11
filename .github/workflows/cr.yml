@@ -1,10 +1,8 @@
 name: cr
 on:
   push:
-    branches: [main]
+    branches: [try/this-schema-holder]
     tags: ['!**'] # Avoid publishing on tags
-  pull_request:
-    types: [opened, synchronize, labeled] # Run on PR creation, updates, and when labels are added
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number }} # Concurrency group for each PR
@@ -15,7 +13,7 @@ permissions:
 
 jobs:
   publish:
-    if: github.repository == 'honojs/hono' && (github.ref == 'refs/heads/main' || contains(github.event.pull_request.labels.*.name, 'cr-tracked'))
+    if: github.repository == 'strozw/hono'
     runs-on: ubuntu-latest
     name: 'Publish: pkg.pr.new'
     permissions:
@@ -47,4 +45,4 @@ jobs:
 
       - name: Publish to StackBlitz
         run: |
-          pnpm exec pkg-pr-new publish --compact
+          pnpm exec pkg-pr-new publish --no-compact
