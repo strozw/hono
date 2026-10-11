@@ -24,6 +24,7 @@ import type {
   OnHandlerInterface,
   RouterRoute,
   Schema,
+  SchemaHolder,
 } from './types'
 import { COMPOSED_HANDLER } from './utils/constants'
 import { getPath, getPathNoStrict, mergePath } from './utils/url'
@@ -39,6 +40,33 @@ const errorHandler: ErrorHandler = (err, c) => {
   }
   console.error(err)
   return c.text('Internal Server Error', 500)
+}
+
+/**
+ * The key of the type-only property that holds the schema of an app. It is not exported, so the property can not be
+ * referred to (or completed) outside of Hono, and it is not a string key of `HonoBase`.
+ */
+declare const schemaKey: unique symbol
+
+/**
+ * The `this` of a handler registration method. The schema of the app is inferred from it instead of being a
+ * type parameter of the method type, so that `HonoBase` members do not have to be re-instantiated (with all of
+ * their overloads and type parameters) every time a route is added.
+ * It is inferred from `HonoBase[schemaKey]` rather than from `HonoBase<any, S, any, any>`, so that it does not
+ * require relating `HonoBase` types (and measuring their variances).
+ * `object | void` keeps the methods callable on other objects and without `this`.
+ */
+export type HonoThis<S extends Schema> = [S] extends [never]
+  ? SchemaCannotBeInferred
+  : { readonly [schemaKey]?: SchemaHolder<S> } | object | void
+
+/**
+ * The `this` required when the schema can not be inferred: when a method of an app is called without the app (e.g.
+ * `const { get } = app; get(...)`) or with explicit type arguments. It makes such calls errors instead of silently
+ * dropping the routes added so far from the schema.
+ */
+interface SchemaCannotBeInferred {
+  'Call the method on the app (not detached) and without explicit type arguments, so that its schema can be inferred': never
 }
 
 type GetPath<E extends Env> = (request: Request, options?: { env?: E['Bindings'] }) => string
@@ -101,16 +129,22 @@ class Hono<
   BasePath extends string = '/',
   CurrentPath extends string = BasePath,
 > {
-  get!: HandlerInterface<E, 'get', S, BasePath, CurrentPath>
-  post!: HandlerInterface<E, 'post', S, BasePath, CurrentPath>
-  put!: HandlerInterface<E, 'put', S, BasePath, CurrentPath>
-  delete!: HandlerInterface<E, 'delete', S, BasePath, CurrentPath>
-  options!: HandlerInterface<E, 'options', S, BasePath, CurrentPath>
-  patch!: HandlerInterface<E, 'patch', S, BasePath, CurrentPath>
-  query!: HandlerInterface<E, 'query', S, BasePath, CurrentPath>
-  all!: HandlerInterface<E, 'all', S, BasePath, CurrentPath>
-  on: OnHandlerInterface<E, S, BasePath>
-  use: MiddlewareHandlerInterface<E, S, BasePath>
+  // The schema is not passed to the method types: each method infers it from `this`, so that these member types
+  // stay the same while routes are added and their overloads are not instantiated again for every new schema.
+  get!: HandlerInterface<E, 'get', never, BasePath, CurrentPath>
+  post!: HandlerInterface<E, 'post', never, BasePath, CurrentPath>
+  put!: HandlerInterface<E, 'put', never, BasePath, CurrentPath>
+  delete!: HandlerInterface<E, 'delete', never, BasePath, CurrentPath>
+  options!: HandlerInterface<E, 'options', never, BasePath, CurrentPath>
+  patch!: HandlerInterface<E, 'patch', never, BasePath, CurrentPath>
+  query!: HandlerInterface<E, 'query', never, BasePath, CurrentPath>
+  all!: HandlerInterface<E, 'all', never, BasePath, CurrentPath>
+  on: OnHandlerInterface<E, never, BasePath>
+  use: MiddlewareHandlerInterface<E, never, BasePath>
+  /**
+   * Type-only. The schema of the app, from which the methods above infer it.
+   */
+  declare readonly [schemaKey]?: SchemaHolder<S>
 
   /*
     This class is like an abstract class and does not have a router.
