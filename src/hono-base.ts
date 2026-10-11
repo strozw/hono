@@ -55,10 +55,16 @@ declare const schemaKey: unique symbol
  * It is inferred from `HonoBase[schemaKey]` rather than from `HonoBase<any, S, any, any>`, so that it does not
  * require relating `HonoBase` types (and measuring their variances).
  * `object | void` keeps the methods callable on other objects and without `this`.
+ * `Inferred` is `true` only when it is inferred from an app. It tells whether the schema has been inferred without
+ * relating the schema itself (e.g. `[S] extends [never]`), which costs more as the schema grows.
  */
-export type HonoThis<S extends Schema, CurrentPath extends string = string> = [S] extends [never]
-  ? SchemaCannotBeInferred
-  : { readonly [schemaKey]?: SchemaHolder<S, CurrentPath> } | object | void
+export type HonoThis<
+  S extends Schema,
+  CurrentPath extends string = string,
+  Inferred extends boolean = true,
+> = [Inferred] extends [true]
+  ? { readonly [schemaKey]?: SchemaHolder<S, CurrentPath, Inferred> } | object | void
+  : SchemaCannotBeInferred
 
 /**
  * The `this` required when the schema can not be inferred: when a method of an app is called without the app (e.g.
@@ -145,7 +151,7 @@ class Hono<
   /**
    * Type-only. The schema and the current path of the app, from which the methods above infer them.
    */
-  declare readonly [schemaKey]?: SchemaHolder<S, CurrentPath>
+  declare readonly [schemaKey]?: SchemaHolder<S, CurrentPath, true>
 
   /*
     This class is like an abstract class and does not have a router.
